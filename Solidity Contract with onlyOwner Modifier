@@ -1,0 +1,23 @@
+contract OwnerRestricted {
+    address public owner;
+
+    constructor() {
+        owner = msg.sender; // Set deployer as the owner
+    }
+
+    // Modifier to restrict access to owner only
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only owner can call this function");
+        _;
+    }
+
+    // Example of a restricted function
+    function restrictedAction() external onlyOwner {
+        // Only the owner can execute this logic
+    }
+
+    // Function accessible to anyone
+    function publicAction() external pure returns (string memory) {
+        return "This function is public.";
+    }
+}
