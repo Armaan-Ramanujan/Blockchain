@@ -1,0 +1,30 @@
+contract EtherSplitter {
+    address payable public recipient1;
+    address payable public recipient2;
+    address payable public recipient3;
+
+    event EtherReceived(address indexed sender, uint amount);
+    event EtherSplit(uint amountEach);
+
+    constructor(address payable _recipient1, address payable _recipient2, address payable _recipient3) {
+        require(_recipient1 != address(0) && _recipient2 != address(0) && _recipient3 != address(0), "Invalid address");
+        recipient1 = _recipient1;
+        recipient2 = _recipient2;
+        recipient3 = _recipient3;
+    }
+
+    // Receive Ether and split it equally
+    receive() external payable {
+        require(msg.value > 0, "No Ether sent");
+
+        uint amountEach = msg.value / 3;
+        uint remainder = msg.value % 3;
+
+        recipient1.transfer(amountEach);
+        recipient2.transfer(amountEach);
+        recipient3.transfer(amountEach + remainder); // Send any remainder to the last recipient
+
+        emit EtherReceived(msg.sender, msg.value);
+        emit EtherSplit(amountEach);
+    }
+}
