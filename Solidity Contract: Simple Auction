@@ -1,0 +1,49 @@
+contract SimpleAuction {
+    address public owner;
+    address public highestBidder;
+    uint public highestBid;
+    bool public ended;
+
+    mapping(address => uint) public pendingReturns;
+
+    event NewBid(address indexed bidder, uint amount);
+    event AuctionEnded(address winner, uint amount);
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    function bid() external payable {
+        require(!ended, "Auction has ended");
+        require(msg.value > highestBid, "Bid not high enough");
+
+        if (highestBid != 0) {
+            // Refund the previous highest bidder
+            pendingReturns[highestBidder] += highestBid;
+        }
+
+        highestBidder = msg.sender;
+        highestBid = msg.value;
+
+        emit NewBid(msg.sender, msg.value);
+    }
+
+    function withdraw() external {
+        uint amount = pendingReturns[msg.sender];
+        require(amount > 0, "Nothing to withdraw");
+
+        pendingReturns[msg.sender] = 0;
+        payable(msg.sender).transfer(amount);
+    }
+
+    function endAuction() external {
+        require(msg.sender == owner, "Only owner can end the auction");
+        require(!ended, "Auction already ended");
+
+        ended = true;
+        emit AuctionEnded(highestBidder, highestBid);
+
+        // Transfer highest bid to the auction owner
+        payable(owner).transfer(highestBid);
+    }
+}
