@@ -1,0 +1,37 @@
+contract StudentRecords {
+    struct Student {
+        string name;
+        uint rollNumber;
+    }
+
+    Student[] private students;
+    mapping(uint => uint) private rollNumberToIndex;
+
+    event StudentAdded(string name, uint rollNumber);
+
+    function addStudent(string memory name, uint rollNumber) external {
+        require(rollNumberToIndex[rollNumber] == 0 && (students.length == 0 || students[0].rollNumber != rollNumber), "Roll number already exists");
+
+        students.push(Student(name, rollNumber));
+        rollNumberToIndex[rollNumber] = students.length; // Store index + 1 to avoid zero default
+        emit StudentAdded(name, rollNumber);
+    }
+
+    function getStudentByIndex(uint index) external view returns (string memory name, uint rollNumber) {
+        require(index < students.length, "Invalid index");
+        Student memory s = students[index];
+        return (s.name, s.rollNumber);
+    }
+
+    function getStudentByRollNumber(uint rollNumber) external view returns (string memory name, uint rollNumberOut) {
+        uint indexPlusOne = rollNumberToIndex[rollNumber];
+        require(indexPlusOne > 0, "Student not found");
+
+        Student memory s = students[indexPlusOne - 1];
+        return (s.name, s.rollNumber);
+    }
+
+    function totalStudents() external view returns (uint) {
+        return students.length;
+    }
+}
